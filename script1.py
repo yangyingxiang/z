@@ -6,7 +6,7 @@ import gc
 
 print('Loading data ...')
 
-train = pd.read_csv('../input/train_2016.csv')
+train = pd.read_csv('../input/train_2016_v2.csv')
 prop = pd.read_csv('../input/properties_2016.csv')
 
 for c, dtype in zip(prop.columns, prop.dtypes):	
