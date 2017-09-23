@@ -71,7 +71,7 @@ def add_month_feature_for_prediction(df, month):
 
 continous_feature = get_continuous_feature(features)
 full_categorical_one_hot_feature = get_full_categorical_feature(features)
-selected_categorical_one_hot_feature = get_selected_categorical_feature(features)
+# selected_categorical_one_hot_feature = get_selected_categorical_feature(features)
 
 # train_score_feature = pd.concat([score, features], axis=1, join_axes=[score.index])
 combined_feature = pd.concat([continous_feature, full_categorical_one_hot_feature], axis=1)
