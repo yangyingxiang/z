@@ -90,7 +90,7 @@ y = train_score_feature['logerror']
 train_feature.drop(['logerror', 'transactiondate'], axis=1, inplace=True)
 model = RandomForestRegressor(n_jobs=10, criterion='mae', n_estimators=5, max_features=5, verbose=True)
 model.fit(train_feature, y); print('fit...')
-print(mean_absolute_error(y, model.predict(train)))
+print(mean_absolute_error(y, model.predict(train_feature)))
 
 # Make prediction
 print('Make predictions')
