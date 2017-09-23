@@ -86,8 +86,9 @@ train_feature = pd.concat([month_feature, train_score_feature], axis=1, join_axe
 
 # Train the model
 y = train_score_feature['logerror']
-model = RandomForestRegressor(n_jobs=10, n_estimators=200, max_features='auto')
-model.fit(combined_feature, y); print('fit...')
+train_feature.drop(['logerror', 'transactiondate'], axis=1, inplace=True)
+model = RandomForestRegressor(n_jobs=10, criterion='mae', n_estimators=200, max_features=200)
+model.fit(train_feature, y); print('fit...')
 print(MAE(y, reg.predict(train)))
 
 # Make prediction
