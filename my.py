@@ -87,14 +87,22 @@ train_feature = pd.concat([month_feature, train_score_feature], axis=1, join_axe
 # Train the model
 y = train_score_feature['logerror']
 train_feature.drop(['logerror', 'transactiondate'], axis=1, inplace=True)
-model = RandomForestRegressor(n_jobs=10, criterion='mae', n_estimators=200, max_features=200)
+model = RandomForestRegressor(n_jobs=10, criterion='mae', n_estimators=5, max_features=5, verbose=True)
 model.fit(train_feature, y); print('fit...')
 print(MAE(y, reg.predict(train)))
 
 # Make prediction
+result = pd.DataFrame()
+result['ParcelId'] = combined_feature.index
 for month in [10, 11, 12]:
 	preict_feature = add_month_feature_for_prediction(combined_feature, month)
 	y_pred = model.predict(preict_feature)
-	# Write result into csv
+	result[month] = y_pred
+result.columns = ['ParcelId', '201610', '201611', '201612']
+result['201710'] = 0
+result['201711'] = 0
+result['201712'] = 0
+# Write result into csv
+result.to_csv('result.csv')
 
 
