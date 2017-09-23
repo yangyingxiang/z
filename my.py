@@ -88,7 +88,7 @@ train_feature = pd.concat([month_feature, train_score_feature], axis=1, join_axe
 # Train the model
 y = train_score_feature['logerror']
 train_feature.drop(['logerror', 'transactiondate'], axis=1, inplace=True)
-model = RandomForestRegressor(n_jobs=10, criterion='mae', n_estimators=5, max_features=5, verbose=True)
+model = RandomForestRegressor(n_jobs=10, criterion='mae', n_estimators=300, max_features=80, verbose=True)
 model.fit(train_feature, y); print('fit...')
 print(mean_absolute_error(y, model.predict(train_feature)))
 
@@ -106,6 +106,6 @@ result['201710'] = 0
 result['201711'] = 0
 result['201712'] = 0
 # Write result into csv
-result.to_csv('result.csv')
+result.to_csv('result.csv', float_format='%.4f', index=False)
 
 
