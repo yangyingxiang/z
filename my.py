@@ -5,7 +5,7 @@ import numpy as np
 import statsmodels.api as sm
 from sklearn import preprocessing
 from sklearn.ensemble import RandomForestRegressor
-from sklearn.ensemble import GradientBoostingRegressor
+from sklearn.ensemble import GradientBoostingRegressor, AdaBoostRegressor
 from sklearn import cross_validation
 import warnings
 from scipy import stats
@@ -89,8 +89,9 @@ train_feature = pd.concat([month_feature, train_score_feature], axis=1, join_axe
 # Train the model
 y = train_score_feature['logerror']
 train_feature.drop(['logerror', 'transactiondate'], axis=1, inplace=True)
-model = GradientBoostingRegressor(n_estimators=800, max_depth=4, loss='ls', verbose=True)
+# model = GradientBoostingRegressor(n_estimators=800, max_depth=4, loss='ls', verbose=True)
 # model = RandomForestRegressor(n_jobs=10, criterion='mae', n_estimators=300, max_features=80, verbose=True)
+model =  AdaBoostRegressor(n_estimators=500, learning_rate=0.5)
 model.fit(train_feature, y); print('fit...')
 print(mean_absolute_error(y, model.predict(train_feature)))
 
