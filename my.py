@@ -64,9 +64,9 @@ def add_month_feature_for_prediction(df, month):
 	month_columns = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12']
 	for m in range(1, 13):
 		if m == month:
-			df[month_columns[m]] = 1
+			df[month_columns[m-1]] = 1
 		else:
-			df[month_columns[m]] = 0
+			df[month_columns[m-1]] = 0
 	return df
 
 
