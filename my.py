@@ -9,6 +9,7 @@ from sklearn import cross_validation
 import warnings
 from scipy import stats
 from statsmodels.sandbox.regression.predstd import wls_prediction_std
+from sklearn.metrics import mean_absolute_error
 warnings.filterwarnings('ignore')
 
 OUTLIER_THRES = 0.4
@@ -89,12 +90,14 @@ y = train_score_feature['logerror']
 train_feature.drop(['logerror', 'transactiondate'], axis=1, inplace=True)
 model = RandomForestRegressor(n_jobs=10, criterion='mae', n_estimators=5, max_features=5, verbose=True)
 model.fit(train_feature, y); print('fit...')
-print(MAE(y, reg.predict(train)))
+print(mean_absolute_error(y, reg.predict(train)))
 
 # Make prediction
+print('Make predictions')
 result = pd.DataFrame()
 result['ParcelId'] = combined_feature.index
 for month in [10, 11, 12]:
+	print(month)
 	preict_feature = add_month_feature_for_prediction(combined_feature, month)
 	y_pred = model.predict(preict_feature)
 	result[month] = y_pred
