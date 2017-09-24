@@ -67,6 +67,11 @@ df_train = fill_missing_values(df_train)
 
 x_train = df_train.drop(['parcelid', 'logerror', 'transactiondate', 'propertyzoningdesc', 
                          'propertycountylandusecode', 'fireplacecnt', 'fireplaceflag'], axis=1)
+# drop very sparse columns
+x_train = x_train.drop(['storytypeid', 'basementsqft', 'yardbuildingsqft26', 'architecturalstyletypeid'], axis=1)
+
+
+
 #x_train['Ratio_1'] = x_train['taxvaluedollarcnt']/x_train['taxamount']
 y_train = df_train['logerror'].values
 print(x_train.shape, y_train.shape)
