@@ -49,11 +49,6 @@ def fill_missing_values(df):
     df = df.fillna(df.median())
     return df
 
-def add_monthly_training_feature(df):
-    df['transactionmonth'] = df['transactiondate'].apply(lambda x: int(str(x).split('-')[1]))
-    return df
-
-
 ################
 ################
 ##  LightGBM  ##
@@ -69,7 +64,6 @@ for c, dtype in zip(prop.columns, prop.dtypes):
 df_train = train.merge(prop, how='left', on='parcelid')
 # df_train.fillna(df_train.median(), inplace = True)
 df_train = fill_missing_values(df_train)
-df_train = add_monthly_training_feature(df_train)
 
 x_train = df_train.drop(['parcelid', 'logerror', 'transactiondate', 'propertyzoningdesc', 
                          'propertycountylandusecode', 'fireplacecnt', 'fireplaceflag'], axis=1)
@@ -127,7 +121,6 @@ print("   ...")
 sample['parcelid'] = sample['ParcelId']
 print("   Merge with property data ...")
 df_test = sample.merge(prop, on='parcelid', how='left')
-df_test['transactionmonth'] = 0
 print("   ...")
 del sample, prop; gc.collect()
 print("   ...")
@@ -139,15 +132,16 @@ print("   Preparing x_test...")
 for c in x_test.dtypes[x_test.dtypes == object].index.values:
     x_test[c] = (x_test[c] == True)
 print("   ...")
+x_test = x_test.values.astype(np.float32, copy=False)
+print("Test shape :", x_test.shape)
 
 print("\nStart LightGBM prediction ...")
-p_test = {}
-for month in [10, 11, 12]:
-    x_test['transactionmonth'] = month
-    x_test_value= x_test.values.astype(np.float32, copy=False)
-    p_test[month] = clf.predict(x_test_value)
+p_test = clf.predict(x_test)
 
 del x_test; gc.collect()
+
+print( "\nUnadjusted LightGBM predictions:" )
+print( pd.DataFrame(p_test).head() )
 
 
 
@@ -174,7 +168,6 @@ for c in properties.columns:
         properties[c] = lbl.transform(list(properties[c].values))
 
 train_df = train.merge(properties, how='left', on='parcelid')
-train_df = add_monthly_training_feature(train_df)
 x_train = train_df.drop(['parcelid', 'logerror','transactiondate'], axis=1)
 x_test = properties.drop(['parcelid'], axis=1)
 # shape        
@@ -208,7 +201,7 @@ xgb_params = {
 }
 
 dtrain = xgb.DMatrix(x_train, y_train)
-
+dtest = xgb.DMatrix(x_test)
 
 num_boost_rounds = 250
 print("num_boost_rounds="+str(num_boost_rounds))
@@ -218,12 +211,10 @@ print( "\nTraining XGBoost ...")
 model = xgb.train(dict(xgb_params, silent=1), dtrain, num_boost_round=num_boost_rounds)
 
 print( "\nPredicting with XGBoost ...")
-xgb_pred1 = {}
-for month in [10, 11, 12]:
-    x_test['transactionmonth'] = month
-    dtest = xgb.DMatrix(x_test)
-    xgb_pred1[month] = model.predict(dtest)
+xgb_pred1 = model.predict(dtest)
 
+print( "\nFirst XGBoost predictions:" )
+print( pd.DataFrame(xgb_pred1).head() )
 
 
 
@@ -247,20 +238,20 @@ print( "\nTraining XGBoost again ...")
 model = xgb.train(dict(xgb_params, silent=1), dtrain, num_boost_round=num_boost_rounds)
 
 print( "\nPredicting with XGBoost again ...")
-xgb_pred2 = {}
-for month in [10, 11, 12]:
-    x_test['transactionmonth'] = month
-    dtest = xgb.DMatrix(x_test)
-    xgb_pred2[month] = model.predict(dtest)
+xgb_pred2 = model.predict(dtest)
 
+print( "\nSecond XGBoost predictions:" )
+print( pd.DataFrame(xgb_pred2).head() )
 
 
 
 ##### COMBINE XGBOOST RESULTS
-xgb_pred = {}
-for month in [10, 11, 12]:
-    xgb_pred[month] = XGB1_WEIGHT*xgb_pred1[month] + (1-XGB1_WEIGHT)*xgb_pred2[month]
+
+xgb_pred = XGB1_WEIGHT*xgb_pred1 + (1-XGB1_WEIGHT)*xgb_pred2
 #xgb_pred = xgb_pred1
+
+print( "\nCombined XGBoost predictions:" )
+print( pd.DataFrame(xgb_pred).head() )
 
 del train_df
 del x_train
@@ -339,9 +330,7 @@ print( "\nCombining XGBoost, LightGBM, and baseline predicitons ..." )
 lgb_weight = (1 - XGB_WEIGHT - BASELINE_WEIGHT) / (1 - OLS_WEIGHT)
 xgb_weight0 = XGB_WEIGHT / (1 - OLS_WEIGHT)
 baseline_weight0 =  BASELINE_WEIGHT / (1 - OLS_WEIGHT)
-pred0 = {}
-for month in [10, 11, 12]:
-    pred0[month] = xgb_weight0*xgb_pred[month] + baseline_weight0*BASELINE_PRED + lgb_weight*p_test[month]
+pred0 = xgb_weight0*xgb_pred + baseline_weight0*BASELINE_PRED + lgb_weight*p_test
 
 print( "\nCombined XGB/LGB/baseline predictions:" )
 print( pd.DataFrame(pred0).head() )
@@ -349,7 +338,7 @@ print( pd.DataFrame(pred0).head() )
 print( "\nPredicting with OLS and combining with XGB/LGB/baseline predicitons: ..." )
 for i in range(len(test_dates)):
     test['transactiondate'] = test_dates[i]
-    pred = OLS_WEIGHT*reg.predict(get_features(test)) + (1-OLS_WEIGHT)*pred0[i%3 + 10]
+    pred = OLS_WEIGHT*reg.predict(get_features(test)) + (1-OLS_WEIGHT)*pred0
     submission[test_columns[i]] = [float(format(x, '.4f')) for x in pred]
     print('predict...', i)
 
