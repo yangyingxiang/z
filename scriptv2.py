@@ -69,7 +69,7 @@ for c, dtype in zip(prop.columns, prop.dtypes):
 df_train = train.merge(prop, how='left', on='parcelid')
 # df_train.fillna(df_train.median(), inplace = True)
 df_train = fill_missing_values(df_train)
-# df_train = add_monthly_training_feature(df_train)
+df_train = add_monthly_training_feature(df_train)
 
 x_train = df_train.drop(['parcelid', 'logerror', 'transactiondate', 'propertyzoningdesc', 
                          'propertycountylandusecode', 'fireplacecnt', 'fireplaceflag'], axis=1)
@@ -142,11 +142,11 @@ x_test = x_test.values.astype(np.float32, copy=False)
 print("Test shape :", x_test.shape)
 
 print("\nStart LightGBM prediction ...")
-# p_test = {}
-# for month in [10, 11, 12]:
-#     x_test['transactionmonth'] = month
-#     p_test[month] = clf.predict(x_test)
-p_test = clf.predict(x_test)
+p_test = {}
+for month in [10, 11, 12]:
+    x_test['transactionmonth'] = month
+    p_test[month] = clf.predict(x_test)
+
 del x_test; gc.collect()
 
 
@@ -167,13 +167,11 @@ properties = pd.read_csv('../input/properties_2016.csv')
 ##### PROCESS DATA FOR XGBOOST
 print( "\nProcessing data for XGBoost ...")
 for c in properties.columns:
+    properties[c]=properties[c].fillna(-1)
     if properties[c].dtype == 'object':
-        properties[c]=properties[c].fillna(-1)
         lbl = LabelEncoder()
         lbl.fit(list(properties[c].values))
         properties[c] = lbl.transform(list(properties[c].values))
-    else:
-        properties[c]=properties[c].fillna(properties[c].median())
 
 train_df = train.merge(properties, how='left', on='parcelid')
 x_train = train_df.drop(['parcelid', 'logerror','transactiondate'], axis=1)
