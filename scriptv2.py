@@ -115,7 +115,7 @@ param_grid = {
     'max_bin': [10, 15],
     'learning_rate': [0.0021, 0.0011, 0.02],
     'boosting_type': ['gbdt'],
-    'objective': 'regression',
+    'objective': ['regression'],
     'metric': ['l1'],
     'sub_feature': [0.345],
     'bagging_fraction': [0.85],
