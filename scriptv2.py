@@ -190,8 +190,8 @@ for c in properties.columns:
     properties[c] = properties[c].fillna(-1)
 if properties[c].dtype == 'object':
     lbl = LabelEncoder()
-lbl.fit(list(properties[c].values))
-properties[c] = lbl.transform(list(properties[c].values))
+    lbl.fit(list(properties[c].values))
+    properties[c] = lbl.transform(list(properties[c].values))
 
 train_df = train.merge(properties, how='left', on='parcelid')
 x_train = train_df.drop(['parcelid', 'logerror', 'transactiondate'], axis=1)
