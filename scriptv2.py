@@ -174,8 +174,8 @@ for c in properties.columns:
         properties[c] = lbl.transform(list(properties[c].values))
 
 train_df = train.merge(properties, how='left', on='parcelid')
-train_df = add_monthly_training_feature(train_df)
 x_train = train_df.drop(['parcelid', 'logerror','transactiondate'], axis=1)
+x_train = add_monthly_training_feature(x_train)
 x_test = properties.drop(['parcelid'], axis=1)
 # shape        
 print('Shape train: {}\nShape test: {}'.format(x_train.shape, x_test.shape))
