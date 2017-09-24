@@ -175,7 +175,8 @@ train_df=train_df[ train_df.logerror < 0.419 ]
 x_train=train_df.drop(['parcelid', 'logerror','transactiondate'], axis=1)
 y_train = train_df["logerror"].values.astype(np.float32)
 y_mean = np.mean(y_train)
-
+x_train = fill_missing_values(x_train)
+x_test = fill_missing_values(x_test)
 print('After removing outliers:')     
 print('Shape train: {}\nShape test: {}'.format(x_train.shape, x_test.shape))
 
@@ -303,6 +304,9 @@ col = [c for c in train.columns if c not in exc]
 train = get_features(train[col])
 test['transactiondate'] = '2016-01-01' #should use the most common training date
 test = get_features(test[col])
+
+train = fill_missing_values(train)
+test = fill_missing_values(test)
 
 reg = LinearRegression(n_jobs=-1)
 reg.fit(train, y); print('fit...')
