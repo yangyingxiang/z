@@ -49,6 +49,11 @@ def fill_missing_values(df):
     df = df.fillna(df.median())
     return df
 
+def add_monthly_training_feature(df):
+    df['transactionmonth'] = df['transactiondate'].apply(lambda x: int(str(x).split('-')[1]))
+    return df
+
+
 ################
 ################
 ##  LightGBM  ##
@@ -64,6 +69,7 @@ for c, dtype in zip(prop.columns, prop.dtypes):
 df_train = train.merge(prop, how='left', on='parcelid')
 # df_train.fillna(df_train.median(), inplace = True)
 df_train = fill_missing_values(df_train)
+df_train = add_monthly_training_feature(df_train)
 
 x_train = df_train.drop(['parcelid', 'logerror', 'transactiondate', 'propertyzoningdesc', 
                          'propertycountylandusecode', 'fireplacecnt', 'fireplaceflag'], axis=1)
@@ -136,12 +142,12 @@ x_test = x_test.values.astype(np.float32, copy=False)
 print("Test shape :", x_test.shape)
 
 print("\nStart LightGBM prediction ...")
-p_test = clf.predict(x_test)
+p_test = {}
+for month in [10, 11, 12]:
+    x_test['transactionmonth'] = month
+    p_test[month] = clf.predict(x_test)
 
 del x_test; gc.collect()
-
-print( "\nUnadjusted LightGBM predictions:" )
-print( pd.DataFrame(p_test).head() )
 
 
 
