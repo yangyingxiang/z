@@ -68,7 +68,7 @@ df_train = fill_missing_values(df_train)
 x_train = df_train.drop(['parcelid', 'logerror', 'transactiondate', 'propertyzoningdesc', 
                          'propertycountylandusecode', 'fireplacecnt', 'fireplaceflag'], axis=1)
 # drop very sparse columns
-x_train = x_train.drop(['storytypeid', 'basementsqft', 'yardbuildingsqft26', 'architecturalstyletypeid'], axis=1)
+# x_train = x_train.drop(['storytypeid', 'basementsqft', 'yardbuildingsqft26', 'architecturalstyletypeid'], axis=1)
 
 
 
@@ -179,7 +179,6 @@ train_df=train_df[ train_df.logerror < 0.419 ]
 x_train=train_df.drop(['parcelid', 'logerror','transactiondate'], axis=1)
 y_train = train_df["logerror"].values.astype(np.float32)
 y_mean = np.mean(y_train)
-x_train = fill_missing_values(x_train)
 print('After removing outliers:')     
 print('Shape train: {}\nShape test: {}'.format(x_train.shape, x_test.shape))
 
@@ -308,7 +307,6 @@ train = get_features(train[col])
 test['transactiondate'] = '2016-01-01' #should use the most common training date
 test = get_features(test[col])
 
-train = fill_missing_values(train)
 
 reg = LinearRegression(n_jobs=-1)
 reg.fit(train, y); print('fit...')
